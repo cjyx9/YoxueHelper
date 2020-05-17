@@ -83,6 +83,7 @@ def showAllHomework():
     showList = []
     # 储存所有未完成作业标题的列表
     cards = func.getHomework(user_id)
+    # print(cards)
     # 获取有关的Dict
     for card in cards:
         showList.append(card['title'])
@@ -144,9 +145,14 @@ def showHomeworkInfo(cards, choiceIndex, call):
     subject = "学科:" + card['subject_name']
     source = func.getHomeworkInfo(card['section_id'], card['course_hour_publish_id'], user_id)
     info = '作业内容:'
+
+    # print(source['qti'])
+    for model in source['qti']:
+        func.getAnswer(model['qid'], model['pulishId'])
+
     for i in source['info']:
         info = info + '\n\t' + i
-    finish = '\n完成人员:'
+    finish = '\n完成人员:' + str(len(source['finish'])) + "人"
     for i in source['finish']:
         finish = finish + '\n\t' + i
     conText = title + '\n\t' + doed + "\n\t" + endTime + '\n\t' + teacher + '\n\t' + subject + "\n\n" + info + "\n" + finish

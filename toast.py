@@ -18,8 +18,13 @@ def toasts():
         for message in messages:
             if "发布了新作业" in message['content']:
                 MessageBeep()
-                msgbox(message['content'], title= message['title'],ok_button="知道啦")
-                delMessage(user_id, [message['message_id']])
+                # msgbox(message['content'], title= message['title'],ok_button="知道啦")
+                if ccbox(message['content'], title= message['title'],choices=("知道啦","马上去做")):
+                    delMessage(user_id, [message['message_id']])
+                else:
+                    from webbrowser import open as opurl
+                    opurl("https://e.anoah.com/ebags/")
+                    delMessage(user_id, [message['message_id']])
         curr_time = datetime.datetime.now()
         time_str = datetime.datetime.strftime(curr_time,'%Y-%m-%d %H:%M:%S')
         print("第%i次刷新,时间:%s,消息%i条" % (sumNum, time_str, len(messages)))

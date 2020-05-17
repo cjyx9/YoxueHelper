@@ -135,18 +135,61 @@ def getHomeworkInfo(section_id, course_hour_publish_id, user_id):
     finishedApi = 'https://www.anoah.com/api/?q=json/ebag5/Homework/finishStudent&info={"publish_id":"' + course_hour_publish_id + '"}'
     info = get(api, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'}).json()
     finish = get(finishedApi, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'}).json()
+    
     list = info['recordset']['course_resource_list']
+
     returnList = []
     for topic in list:
         cleanInfo = topic['resource_name']
         returnList.append(cleanInfo)
     finishStudents = finish['recordset']
+
     returnList2 = []
     for student in finishStudents:
         cleanInfo2 = student['real_name'] + '(' + student['loginnm'] + ')'
         returnList2.append(cleanInfo2)
+
+    returnList3 = []
+    for topic in list:
+        if topic['icom_name'] == "互动试题":
+            returnList3.append({
+                "pulishId": topic['course_hour_publish_id'],
+                "qid": "test:" + topic["qti_id"]
+            })
+
     returnJson = {
         "info": returnList,
-        "finish": returnList2
+        "finish": returnList2,
+        "qti": returnList3
     }
     return returnJson
+
+
+def getAnswer(qid, publishId):
+    url = 'https://www.anoah.com/api_cache/?q=json/Qti/get&info={"param":{"qid":"' + qid + '"},"pulishId":"' + publishId + '"}'
+    info = get(url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'}).json()
+    title = info['title']
+    anli = info['section'][0]['items']
+    time = "大约需要" + str(round(len(anli)*0.33+0.2, 1)) + "分钟完成"
+    count = 0
+    retext = title + '(' + time + ')' + ":\n"
+
+    for dict in anli:
+        count += 1
+        canswer = dict['answer']
+        if isinstance(canswer, list):
+            answer = ''
+            for an in canswer:
+                if isinstance(an, list):
+                    answer = answer + an[0] + ';'
+                else:
+                    answer = answer + ';' + an
+        elif str(canswer.replace(' ','')) == '':
+            answer = "没有找到答案"
+        elif isinstance(canswer, int) or isinstance(canswer, str):
+            answer = str(canswer).strip()
+
+        question = '(' + dict['qtypeName'] + ')' + dict['prompt'][:40] + '...'
+        re = str(count) + '.' + question + '\n答案:' + answer + '\n'
+        retext += re
+    print(retext)
